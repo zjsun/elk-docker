@@ -1,0 +1,13 @@
+instances:
+  - name: es1
+    dns:
+      - es1
+      - localhost
+    ip:
+      - 127.0.0.1
+  - name: es2
+    dns:
+      - es2
+      - localhost
+    ip:
+      - 127.0.0.1
