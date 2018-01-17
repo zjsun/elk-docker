@@ -4,6 +4,11 @@ Elastic Pack（elk） docker composer
 ## 版本说明
 基于ELK 6.1.1版本，如果需要其他版本，请自行修改文件中的版本号。
 
+## 内容
+包含：2个es节点 + 1个kibana节点 + 1个logstash节点 + 1个metricbeat节点
+
+beat数据经由logstash存入es，所有节点由kibana管理并监控，包括logstash的pipeline也是由kibana在线管理。
+
 ## 步骤
 1. 安装elk docker镜像：install.sh
 
@@ -24,4 +29,4 @@ Elastic Pack（elk） docker composer
    将停止并删除容器实例、证书文件、数据卷。
    
 ## 特别申明
-内容来源于互联网，禁用学习研究参考。
+内容来源于互联网，仅用于学习研究参考。
