@@ -1,0 +1,122 @@
+version: '2.2'
+
+networks:
+  elk:
+
+volumes:
+  es1data:
+    driver: local
+  es2data:
+    driver: local
+
+services:
+  es1:
+    image: docker.elastic.co/elasticsearch/elasticsearch-platinum
+    container_name: es1
+    environment:
+      - "cluster.name=$CLUSTER_NAME"
+      - "node.name=es1"
+      - "bootstrap.memory_lock=true"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+      - "discovery.zen.minimum_master_nodes=2"
+#      - "xpack.security.http.ssl.enabled=true"
+      - "xpack.security.transport.ssl.enabled=true"
+      - "xpack.security.transport.ssl.verification_mode=certificate"
+      - "xpack.ssl.key=certs/es1/es1.key"
+      - "xpack.ssl.certificate=certs/es1/es1.crt"
+      - "xpack.ssl.certificate_authorities=certs/ca/ca.crt"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es1data:/usr/share/elasticsearch/data
+      - ./x-pack-6.1.1.jar:/usr/share/elasticsearch/plugins/x-pack/x-pack-6.1.1.jar
+      - ./certs/:/usr/share/elasticsearch/config/certs/
+    ports:
+      - 9200:9200
+      - 9300:9300
+    healthcheck:
+      test: curl --cacert certs/ca/ca.crt -s https://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - elk
+
+  es2:
+    image: docker.elastic.co/elasticsearch/elasticsearch-platinum
+    container_name: es2
+    environment:
+      - "cluster.name=$CLUSTER_NAME"
+      - "node.name=es2"
+      - "bootstrap.memory_lock=true"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+      - "discovery.zen.minimum_master_nodes=2"
+      - "discovery.zen.ping.unicast.hosts=es1"
+#      - "xpack.security.http.ssl.enabled=true"
+      - "xpack.security.transport.ssl.enabled=true"
+      - "xpack.security.transport.ssl.verification_mode=certificate"
+      - "xpack.ssl.key=certs/es2/es2.key"
+      - "xpack.ssl.certificate=certs/es2/es2.crt"
+      - "xpack.ssl.certificate_authorities=certs/ca/ca.crt"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es2data:/usr/share/elasticsearch/data
+      - ./x-pack-6.1.1.jar:/usr/share/elasticsearch/plugins/x-pack/x-pack-6.1.1.jar
+      - ./certs/:/usr/share/elasticsearch/config/certs/
+    networks:
+      - elk
+    depends_on: {"es1": {"condition": "service_healthy"}}
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana
+    container_name: kibana
+    environment:
+      - "SERVER_NAME=kibana"
+      - "XPACK_MONITORING_ENABLED=true"
+      - "ELASTICSEARCH_URL=http://es1:9200"
+      - "ELASTICSEARCH_USERNAME=elastic"
+      - "ELASTICSEARCH_PASSWORD=$ELASTIC_PASSWORD"
+      - "XPACK_MONITORING_UI_CONTAINER_ELASTICSEARCH_ENABLED=true"
+    ports:
+      - 5601:5601
+    networks:
+      - elk
+    depends_on: {"es1": {"condition": "service_healthy"}}
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash
+    container_name: logstash
+    environment:
+      - "node.name=logstash"
+      - "xpack.monitoring.enabled=true"
+      - "xpack.monitoring.elasticsearch.url=http://es1:9200"
+      - "xpack.monitoring.elasticsearch.username=logstash_system"
+      - "xpack.monitoring.elasticsearch.password=$ELASTIC_PASSWORD"
+      - "path.config=~"
+      - "xpack.management.enabled=true"
+      - "xpack.management.elasticsearch.url=http://es1:9200/"
+      - "xpack.management.elasticsearch.username=elastic"
+      - "xpack.management.elasticsearch.password=$ELASTIC_PASSWORD"
+      - "xpack.management.logstash.poll_interval=5s"
+      - "xpack.management.pipeline.id=[\"beats\"]"
+    networks:
+      - elk
+    depends_on: {"es1": {"condition": "service_healthy"}}
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat
+    container_name: metricbeat
+    environment: []
+    volumes:
+      - ./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+    networks:
+      - elk
+    depends_on:
+      - logstash

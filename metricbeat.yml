@@ -1,0 +1,17 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+processors:
+- add_cloud_metadata:
+
+output.logstash:
+  hosts: ['logstash:5044']
+
+setup.kibana:
+  host: "kibana:5601"
+  username: elastic
+  password: elkpwd
+
+setup.dashboards:
+  enabled: true
