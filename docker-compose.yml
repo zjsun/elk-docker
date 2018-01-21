@@ -26,6 +26,8 @@ services:
       - "xpack.ssl.key=certs/es1/es1.key"
       - "xpack.ssl.certificate=certs/es1/es1.crt"
       - "xpack.ssl.certificate_authorities=certs/ca/ca.crt"
+      - "xpack.monitoring.history.duration=1d"
+      - "xpack.watcher.history.cleaner_service.enabled=true"
     ulimits:
       memlock:
         soft: -1
@@ -62,6 +64,8 @@ services:
       - "xpack.ssl.key=certs/es2/es2.key"
       - "xpack.ssl.certificate=certs/es2/es2.crt"
       - "xpack.ssl.certificate_authorities=certs/ca/ca.crt"
+      - "xpack.monitoring.history.duration=1d"
+      - "xpack.watcher.history.cleaner_service.enabled=true"
     ulimits:
       memlock:
         soft: -1
