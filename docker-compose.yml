@@ -40,7 +40,7 @@ services:
       - 9200:9200
       - 9300:9300
     healthcheck:
-      test: curl --cacert certs/ca/ca.crt -s https://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      test: curl -u elastic:$ELASTIC_PASSWORD -s https://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
       interval: 30s
       timeout: 10s
       retries: 5
@@ -110,6 +110,11 @@ services:
       - "xpack.management.elasticsearch.password=$ELASTIC_PASSWORD"
       - "xpack.management.logstash.poll_interval=5s"
       - "xpack.management.pipeline.id=[\"beats\"]"
+    healthcheck:
+      test: curl -s https://localhost:9600 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - elk
     depends_on: {"es1": {"condition": "service_healthy"}}
@@ -122,5 +127,4 @@ services:
       - ./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
     networks:
       - elk
-    depends_on:
-      - logstash
+    depends_on: {"logstash": {"condition": "service_healthy"}}
