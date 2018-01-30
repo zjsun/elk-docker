@@ -109,7 +109,9 @@ services:
       - "xpack.management.elasticsearch.username=elastic"
       - "xpack.management.elasticsearch.password=$ELASTIC_PASSWORD"
       - "xpack.management.logstash.poll_interval=5s"
-      - "xpack.management.pipeline.id=[\"beats\"]"
+      - "xpack.management.pipeline.id=[\"beats\", \"mysql\"]"
+    volumes:
+      - ./mysql-connector-java-5.1.42.jar:/usr/share/logstash/mysql-connector-java-5.1.42.jar
     healthcheck:
       test: curl -s https://localhost:9600 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
       interval: 30s
