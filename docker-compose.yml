@@ -109,7 +109,7 @@ services:
       - "xpack.management.elasticsearch.username=elastic"
       - "xpack.management.elasticsearch.password=$ELASTIC_PASSWORD"
       - "xpack.management.logstash.poll_interval=5s"
-      - "xpack.management.pipeline.id=[\"beats\", \"mysql\"]"
+      - "xpack.management.pipeline.id=[\"beats\", \"mysql\", \"SqlServer\", \"p1\", \"p2\", \"p3\", \"p4\", \"p5\", \"p6\"]"
     volumes:
       - ./mysql-connector-java-5.1.42.jar:/usr/share/logstash/mysql-connector-java-5.1.42.jar
     healthcheck:
